@@ -103,7 +103,7 @@ import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConne
             type: 'postgres',
             url: databaseUrl,
             autoLoadEntities: true,
-            synchronize: false, // schema is managed by migrations now
+            synchronize: true, // schema is managed by migrations now
             ssl: { rejectUnauthorized: false },
           } as PostgresConnectionOptions;
         }
