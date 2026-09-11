@@ -21,6 +21,9 @@ const connectionOptions: DataSourceOptions = databaseUrl
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME || 'medbridge',
+      ssl: process.env.DATABASE_HOST && process.env.DATABASE_HOST !== 'localhost'
+        ? { rejectUnauthorized: false }
+        : false,
       entities: ['src/**/*.entity{.ts,.js}'],
       migrations: ['src/migrations/*{.ts,.js}'],
       synchronize: false,

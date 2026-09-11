@@ -88,7 +88,77 @@ const dataSource = new DataSource({
   database: process.env.DATABASE_NAME || 'medbridge',
   entities: ENTITIES,
   synchronize: true,
+  ssl: process.env.DATABASE_HOST !== 'localhost' ? { rejectUnauthorized: false } : false,
 });
+
+// ---------------------------------------------------------------------------
+// Profile photos - paste your own hosted image links here, in any order.
+// Accounts are assigned one each, in the order they're created below; if
+// there are fewer URLs than accounts, it cycles back to the start.
+// ---------------------------------------------------------------------------
+
+// Doctors get their own dedicated list, assigned in order (doctor 1 -> first
+// URL, doctor 2 -> second URL, etc.), independent of the shared cursor below.
+const DOCTOR_IMAGE_URLS: string[] = [
+  'https://i.ibb.co.com/KTqKwCk/images-16.jpg',
+  'https://i.ibb.co.com/7d7V55tK/images-15.jpg',
+  'https://i.ibb.co.com/xtdSNZLP/images-14.jpg',
+  'https://i.ibb.co.com/GQvSVnz8/images-13.jpg',
+  'https://i.ibb.co.com/0VpQGqJr/images-11.jpg',
+  'https://i.ibb.co.com/SDhzgTtC/images-7.jpg',
+  'https://i.ibb.co.com/fzgV9QGG/images-9.jpg',
+  'https://i.ibb.co.com/G3x5qTX6/images-8.jpg',
+  'https://i.ibb.co.com/SDhzgTtC/images-7.jpg',
+  'https://i.ibb.co.com/n8rWXzbp/images-6.jpg',
+  'https://i.ibb.co.com/QFrcNwtX/images-5.jpg',
+  'https://i.ibb.co.com/Y7XD44qZ/images-4.jpg',
+  'https://i.ibb.co.com/gMNHJgVs/images-3.jpg',
+  'https://i.ibb.co.com/zW8R4gLG/images-2.jpg',
+  'https://i.ibb.co.com/rGM7qTTJ/images-1.jpg',
+];
+/** i-th doctor's photo (wraps if there are more doctors than URLs). */
+function doctorAvatar(i: number): string | undefined {
+  if (DOCTOR_IMAGE_URLS.length === 0) return undefined;
+  return DOCTOR_IMAGE_URLS[i % DOCTOR_IMAGE_URLS.length];
+}
+
+// CHWs get their own dedicated list too, assigned in order, independent of
+// the shared cursor below.
+const CHW_IMAGE_URLS: string[] = [
+  'https://i.ibb.co.com/LDVHvCK6/220062224-1.png',
+  'https://i.ibb.co.com/nsr1N76f/221030468.jpg',
+  'https://i.ibb.co.com/3YPgJxQV/image.jpg',
+  'https://i.ibb.co.com/wrCr96Ng/222543893.jpg',
+  
+];
+/** i-th CHW's photo (wraps if there are more CHWs than URLs). */
+function chwAvatar(i: number): string | undefined {
+  if (CHW_IMAGE_URLS.length === 0) return undefined;
+  return CHW_IMAGE_URLS[i % CHW_IMAGE_URLS.length];
+}
+
+// Everyone else (admin, pharmacists, staff, patients) cycles through
+// this shared list via nextAvatar(). Swap these out with dedicated
+// pharmacist / staff links whenever you send them.
+const IMAGE_URLS: string[] = [
+  'https://i.ibb.co.com/fzgV9QGG/images-9.jpg',
+  'https://i.ibb.co.com/G3x5qTX6/images-8.jpg',
+  'https://i.ibb.co.com/SDhzgTtC/images-7.jpg',
+  'https://i.ibb.co.com/n8rWXzbp/images-6.jpg',
+  'https://i.ibb.co.com/QFrcNwtX/images-5.jpg',
+  'https://i.ibb.co.com/Y7XD44qZ/images-4.jpg',
+  'https://i.ibb.co.com/gMNHJgVs/images-3.jpg',
+  'https://i.ibb.co.com/zW8R4gLG/images-2.jpg',
+  'https://i.ibb.co.com/rGM7qTTJ/images-1.jpg',
+];
+let avatarCursor = 0;
+/** Next photo URL in sequence, or undefined if IMAGE_URLS is empty. */
+function nextAvatar(): string | undefined {
+  if (IMAGE_URLS.length === 0) return undefined;
+  const url = IMAGE_URLS[avatarCursor % IMAGE_URLS.length];
+  avatarCursor++;
+  return url;
+}
 
 // ---------------------------------------------------------------------------
 // Deterministic randomness
@@ -203,17 +273,28 @@ function vitalsFor(tier: VitalTier) {
 const DEFAULT_PW = 'password123';
 
 const doctorProfiles = [
-  { name: 'Dr. Sarah Miller', spec: 'Cardiology', exp: 15, qual: 'MBBS, MD (Cardiology)' },
-  { name: 'Dr. Anil Kumar', spec: 'Neurology', exp: 12, qual: 'MBBS, FCPS (Neurology)' },
-  { name: 'Dr. Rajesh Podder', spec: 'Pediatrics', exp: 20, qual: 'MBBS, DCH, FCPS' },
-  { name: 'Dr. Nisha Sultana', spec: 'Dermatology', exp: 8, qual: 'MBBS, DDV' },
-  { name: 'Dr. Priya Mehta', spec: 'General Medicine', exp: 10, qual: 'MBBS, FCPS (Medicine)' },
+  { name: 'Dr. Shafiqul Islam',   spec: 'Cardiology',              exp: 15, qual: 'MBBS, MD (Cardiology)' },
+  { name: 'Dr. Farhana Akter',    spec: 'Neurology',               exp: 12, qual: 'MBBS, FCPS (Neurology)' },
+  { name: 'Dr. Mahbubur Rahman',  spec: 'Pediatrics',              exp: 20, qual: 'MBBS, DCH, FCPS' },
+  { name: 'Dr. Nusrat Jahan',     spec: 'Dermatology',             exp: 8,  qual: 'MBBS, DDV' },
+  { name: 'Dr. Abdul Kader',      spec: 'General Medicine',        exp: 10, qual: 'MBBS, FCPS (Medicine)' },
+  { name: 'Dr. Taslima Begum',    spec: 'Gynecology & Obstetrics', exp: 14, qual: 'MBBS, FCPS (Gynae & Obs), DGO' },
+  { name: 'Dr. Ashraful Haque',   spec: 'Orthopedics',             exp: 11, qual: 'MBBS, MS (Orthopedics)' },
+  { name: 'Dr. Sultana Razia',    spec: 'ENT',                     exp: 9,  qual: 'MBBS, FCPS (ENT)' },
+  { name: 'Dr. Mizanur Rahman',   spec: 'Nephrology',              exp: 16, qual: 'MBBS, MD (Nephrology)' },
+  { name: 'Dr. Zahidul Islam',    spec: 'Gastroenterology',        exp: 13, qual: 'MBBS, MD (Gastroenterology)' },
+  { name: 'Dr. Shirin Sultana',   spec: 'Psychiatry',              exp: 7,  qual: 'MBBS, MD (Psychiatry)' },
+  { name: 'Dr. Golam Mostofa',    spec: 'Pulmonology',             exp: 18, qual: 'MBBS, FCPS (Medicine), MD (Pulmonology)' },
+  { name: 'Dr. Rummana Ferdous',  spec: 'Endocrinology',           exp: 9,  qual: 'MBBS, MD (Endocrinology)' },
+  { name: 'Dr. Habibur Rahman',   spec: 'Urology',                 exp: 17, qual: 'MBBS, MS (Urology)' },
+  { name: 'Dr. Nasreen Akhter',   spec: 'Ophthalmology',           exp: 6,  qual: 'MBBS, DO (Ophthalmology)' },
 ];
 
 const chwProfiles = [
-  { name: 'Mary Johnson', area: 'Rampur Union - Block A', since: '2022-03-14' },
-  { name: 'Ravi Kumar', area: 'Char Ramani Union - Block B', since: '2023-01-09' },
-  { name: 'Anita Devi', area: 'Dalal Bazar Union - Block C', since: '2023-07-02' },
+  { name: 'Rashedul Alam', area: 'Rampur Union - Block A', since: '2022-03-14' },
+  { name: 'Kallol Dey', area: 'Char Ramani Union - Block B', since: '2023-01-09' },
+  { name: 'Tanvir Ahmed', area: 'Dalal Bazar Union - Block C', since: '2023-07-02' },
+  { name: 'Mushiq Rahman', area: 'Mandari Union - Block D', since: '2024-02-20' },
 ];
 
 const pharmacistProfiles = [
@@ -342,6 +423,22 @@ async function seed() {
   await dataSource.initialize();
   console.log(`Connected to ${process.env.DATABASE_NAME || 'medbridge'}.`);
 
+  if (DOCTOR_IMAGE_URLS.length === 0) {
+    console.log('No entries in DOCTOR_IMAGE_URLS - seeded doctors will have no profileImage (falls back to initials).');
+  } else {
+    console.log(`Using ${DOCTOR_IMAGE_URLS.length} doctor image URL(s).`);
+  }
+  if (CHW_IMAGE_URLS.length === 0) {
+    console.log('No entries in CHW_IMAGE_URLS - seeded CHWs will have no profileImage (falls back to initials).');
+  } else {
+    console.log(`Using ${CHW_IMAGE_URLS.length} CHW image URL(s).`);
+  }
+  if (IMAGE_URLS.length === 0) {
+    console.log('No entries in IMAGE_URLS - other seeded accounts will have no profileImage (falls back to initials).');
+  } else {
+    console.log(`Using ${IMAGE_URLS.length} image URL(s), cycled across the remaining seeded accounts.`);
+  }
+
   // ---------- Wipe ----------
   // One statement so foreign keys never see a half-empty schema. RESTART
   // IDENTITY means ids are stable across runs, which keeps demo URLs valid.
@@ -385,6 +482,7 @@ async function seed() {
       password,
       role: UserRole.ADMIN,
       isActive: true,
+      profileImage: nextAvatar(),
     }),
   );
   await repo(Staff).save({ user: admin, department: 'Administration', designation: 'System Administrator' });
@@ -401,6 +499,7 @@ async function seed() {
         role: UserRole.DOCTOR,
         isPublic: true,
         isActive: true,
+        profileImage: doctorAvatar(i),
       }),
     );
     await repo(Doctors).save({
@@ -428,6 +527,7 @@ async function seed() {
         role: UserRole.CHW,
         isPublic: true,
         isActive: true,
+        profileImage: chwAvatar(i),
       }),
     );
     await repo(HealthWorkers).save({ user, assignedArea: c.area, activeSince: c.since });
@@ -446,6 +546,7 @@ async function seed() {
         role: UserRole.PHARMACIST,
         isPublic: true,
         isActive: true,
+        profileImage: nextAvatar(),
       }),
     );
     await repo(Staff).save({ user, department: 'Pharmacy', designation: p.designation });
@@ -462,6 +563,7 @@ async function seed() {
       role: UserRole.STAFF,
       isPublic: true,
       isActive: true,
+      profileImage: nextAvatar(),
     }),
   );
   await repo(Staff).save({ user: receptionist, department: 'Front Desk', designation: 'Coordinator' });
@@ -476,6 +578,7 @@ async function seed() {
       role: UserRole.DOCTOR,
       isPublic: false,
       isActive: false,
+      profileImage: nextAvatar(),
     }),
   );
   track('users', 1 + doctors.length + chws.length + pharmacists.length + 2);
@@ -589,6 +692,7 @@ async function seed() {
           password,
           role: UserRole.PATIENT,
           isActive: true,
+          profileImage: nextAvatar(),
         }),
       );
     }
