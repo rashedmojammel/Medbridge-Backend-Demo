@@ -12,6 +12,7 @@ import * as bcrypt from 'bcrypt';
 import { randomBytes, createHash } from 'crypto';
 import { AuditAction } from './user-role.enum';
 import { AuditService } from '../audit/audit.service';
+import { MailService } from '../mail/mail.service';
 import { Users } from '../users/users.entity';
 import { PasswordResets } from './password-resets.entity';
 import { ChangePasswordDto, ResetPasswordDto } from './dtos/password.dto';
@@ -24,6 +25,7 @@ export class PasswordService {
     @InjectRepository(Users) private usersRepo: Repository<Users>,
     @InjectRepository(PasswordResets) private resetsRepo: Repository<PasswordResets>,
     private auditService: AuditService,
+    private mailService: MailService,
     private config: ConfigService,
   ) {}
 
@@ -94,11 +96,67 @@ export class PasswordService {
     const base = this.config.get('CORS_ORIGIN', 'http://localhost:3000');
     const link = `${base}/reset-password?token=${rawToken}`;
 
-    // MailService is wired in the notifications module; log the link so the
-    // flow is testable in development even without SMTP configured
-    this.logger.log(`Password reset link for ${email}: ${link}`);
+    await this.mailService.send(
+      [user.email],
+      'Reset your Medbridge password',
+      this.buildResetEmail(user.fullName, link),
+    );
+
+    this.logger.log(`Password reset email dispatched to ${email}`);
 
     return generic;
+  }
+
+  private buildResetEmail(fullName: string, link: string): string {
+    return `
+<!DOCTYPE html>
+<html>
+  <body style="margin:0;padding:0;background-color:#f1f5f9;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #e2e8f0;">
+            <tr>
+              <td style="background-color:#2563eb;padding:20px 28px;">
+                <span style="font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:bold;color:#ffffff;">Medbridge</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:28px;">
+                <p style="margin:0 0 16px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#334155;">
+                  Hi ${fullName},
+                </p>
+                <p style="margin:0 0 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#334155;">
+                  We received a request to reset your Medbridge password. This link expires in 1 hour and can only be used once. If you didn't request this, you can safely ignore this email - your password won't be changed.
+                </p>
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="border-radius:6px;background-color:#2563eb;">
+                      <a href="${link}" style="display:inline-block;padding:12px 24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:6px;">
+                        Reset Password
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:20px 0 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#94a3b8;">
+                  If the button doesn't work, copy and paste this link into your browser:<br />
+                  <a href="${link}" style="color:#2563eb;">${link}</a>
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="background-color:#f8fafc;border-top:1px solid #e2e8f0;padding:16px 28px;">
+                <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#94a3b8;">
+                  Sent automatically by Medbridge. Please do not reply to this email.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
   }
 
   async resetPassword(dto: ResetPasswordDto) {

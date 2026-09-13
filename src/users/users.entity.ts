@@ -39,4 +39,10 @@ export class Users {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  // @Column({ type: 'varchar', nullable: true })
+  // resetPasswordTokenHash: string | null;
+
+  // @Column({ type: 'timestamp', nullable: true })
+  // resetPasswordExpires: Date | null
 }
