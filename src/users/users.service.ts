@@ -12,7 +12,6 @@ import { Users } from './users.entity';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 
-/** Fields safe to expose on the public directory - NEVER email/phone/password */
 const publicUser = (u: Users) => ({
   id: u.id,
   fullName: u.fullName,
