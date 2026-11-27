@@ -21,16 +21,6 @@ export class OrdersService {
     @InjectRepository(Patients) private patientsRepo: Repository<Patients>,
     private dataSource: DataSource,
   ) {}
-
-  /**
-   * Creates the order + items + a pending payment row in one transaction,
-   * then initiates an SSLCommerz session and returns the gateway URL to
-   * redirect the patient to.
-   *
-   * The total is computed HERE, from the current Medicines.price for each
-   * item - the frontend never sends an amount, and nothing it sends is
-   * trusted for pricing.
-   */
   async createOrder(dto: CreateOrderDto, patientUserId: number) {
     const patient = await this.patientsRepo.findOne({
       where: { user: { id: patientUserId } },
