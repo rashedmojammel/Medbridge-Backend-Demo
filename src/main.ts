@@ -24,8 +24,6 @@ async function bootstrap() {
     new ClassSerializerInterceptor(app.get(Reflector)),
     new TransformInterceptor(),
   );
-
-  // Serve uploaded profile photos
   const uploadsDir = join(process.cwd(), 'uploads');
   if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
   app.useStaticAssets(uploadsDir, { prefix: '/uploads/' });
