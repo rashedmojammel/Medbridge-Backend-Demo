@@ -94,3 +94,21 @@ export enum AuditAction {
   LOGIN_FAILED = 'LOGIN_FAILED',
   DISPENSE = 'DISPENSE',
 }
+
+export enum OrderStatus {
+  PENDING = 'PENDING',
+  PAID = 'PAID',
+  FAILED = 'FAILED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum PaymentStatus {
+  INITIATED = 'INITIATED',
+  VALID = 'VALID',
+  FAILED = 'FAILED',
+  CANCELLED = 'CANCELLED',
+}
+export enum FulfillmentStatus {
+  UNFULFILLED = 'UNFULFILLED',
+  FULFILLED = 'FULFILLED',
+}

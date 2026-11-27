@@ -27,6 +27,14 @@ export class Medicines {
   @Column({ default: true })
   isAvailable: boolean;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  price: string;
+
+  /** Product photo, set by a pharmacist. Falls back to a dosage-form icon
+   *  on the frontend when not set. */
+  @Column({ nullable: true })
+  imageUrl: string;
+
   @OneToOne(() => MedicineInventory, (i) => i.medicine, { eager: true })
   inventory: MedicineInventory;
 }

@@ -88,6 +88,7 @@ import { DiaryModule } from './diary/diary.module';
 import { VisitsModule } from './visits/visits.module';
 import { StatsModule } from './stats/stats.module';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -141,6 +142,7 @@ import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConne
     DiaryModule,
     VisitsModule,
     StatsModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

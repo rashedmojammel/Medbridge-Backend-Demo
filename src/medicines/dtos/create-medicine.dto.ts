@@ -1,5 +1,6 @@
 import {
-  ArrayUnique, IsArray, IsBoolean, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, Min,
+  ArrayUnique, IsArray, IsBoolean, IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString,
+  IsUrl, Min,
 } from 'class-validator';
 
 export class CreateMedicineDto {
@@ -17,6 +18,10 @@ export class CreateMedicineDto {
 
   @IsOptional() @IsInt() @Min(0) stockQty?: number;
   @IsOptional() @IsInt() @Min(0) threshold?: number;
+
+  @IsOptional() @IsNumber() @Min(0) price?: number;
+
+  @IsOptional() @IsUrl() imageUrl?: string;
 
   @IsOptional()
   @IsArray()
