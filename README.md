@@ -8,7 +8,7 @@ PostgreSQL, and the full demo flow (register -> login -> CHW registers patient -
 triage -> CRITICAL alert -> doctor+admin notified -> live chat -> prescription
 issued & immutable -> low-stock alert -> RBAC enforced) has been tested live.
 
-## Quick start
+## Quick start !
 
 ```bash
 npm install
